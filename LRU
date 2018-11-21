@@ -1,0 +1,88 @@
+class LRUCache {
+  /**
+  doubly LinkedList + HashMap
+  case1: check if the new url is in the LRU cache or not with O(1), if hits
+  case2: update the order of the hit URL as new one ( move to new side), move based on timestamp, return Entry’s value.
+  case3: otherwise not hit O(1).
+      case a: if not full, inset the new entry to new side.
+      case b: else full, deleted the oldest entry & insert the new entry new side.
+
+  为了满足case3: 尾巴进头出 → Queue → List/ Array
+  为了满足case2: Doubly LinkedList  因为要从中间读值并且调整到尾
+  为了满足case1: HashSet → HashMap (check key, get value)
+
+  结论: Doubly LInkedL + HashMap.
+
+  **/
+  class Node {
+    int key;
+    int val;
+    Node pre;
+    Node next;
+    public Node (int key, int val) {
+      this.key = key;
+      this.val = val;
+      pre = null;
+      next = null;
+    }
+  }
+  
+  private HashMap<Integer, Node> map;
+  private Node head = new Node (-1, -1);
+  private Node tail = new Node (-1, -1);
+  private int capacity;
+
+    public LRUCache(int capacity) {
+        this.capacity = capacity;
+        map = new HashMap<Integer, Node>();
+        head.pre = null;
+        head.next = tail;
+        tail.pre = head;
+        tail.next = null;
+    }
+    
+    public int get(int key) {
+        Node hitNode = map.get(key);
+        if (hitNode != null) {
+          remove(hitNode);
+          addToTail(hitNode);
+          return hitNode.val;
+        }
+      return -1;
+    }
+    
+    public void put(int key, int value) {
+        Node putNode = map.get(key);
+      //in case there are any update on the value
+        Node newNode = new Node(key,value); 
+        if (putNode != null) {
+          remove(putNode); 
+        }
+        else {
+        if (map.size() >= capacity) {
+          map.remove(head.next.key);
+          remove(head.next);
+        }
+      }
+      addToTail(newNode);
+      map.put(key, newNode);
+    }
+    public void remove(Node node) {
+      node.pre.next = node.next;
+      node.next.pre = node.pre;
+    }
+    public void addToTail(Node node) {
+      Node temp = tail.pre;
+      node.next = tail;
+      node.pre = temp;
+      temp.next = node;
+      tail.pre = node;
+    }
+}
+
+/**
+ * Your LRUCache object will be instantiated and called as such:
+ * LRUCache obj = new LRUCache(capacity);
+ * int param_1 = obj.get(key);
+ * obj.put(key,value);
+ */
